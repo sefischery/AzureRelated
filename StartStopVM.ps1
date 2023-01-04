@@ -35,7 +35,7 @@ if ($PowerAction -eq 'On') {
         $virtualmachine = Get-AzVM -ResourceGroupName $resourcegrp -Name $VM_name
 
         # check if the VM is running (it shouldn't be but okay)
-        if ($virtualmachine.PowerState -eq 'Runnning'){
+        if ($virtualmachine.PowerState -eq 'Running'){
             Write-Output "Virtual Machine '$VM_name' is already running"
         }
         else {
