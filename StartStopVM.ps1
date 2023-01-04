@@ -44,6 +44,28 @@ if ($PowerAction -eq 'On') {
             Write-Output "Virtual machine '$VM_name' started."
         }
     }
+
+    $publicIP_raw = (Invoke-WebRequest -UseBasicParsing -Uri "https://www.showmyip.com/" -Method Get).Content
+    $publicIP_raw -match '(?<=<h2 id="ipv4">)(.*)(?=<\/h2>)'
+    $publicIP = $Matches[0]
+
+    $rdpPORT = 3389
+
+    Write-Output "Your public IP address is: $publicIP"
+
+    # can't get it to work for some reason with the variables $ so I suspect something is up when not doing it hardcoded or I'm not doing it right rn,works atm with hardcoded string. 
+
+    $JitPolicyVm1 = (@{
+        id="/subscriptions/<<<<SUBSCRIPTIONID>>>>>>>/resourceGroups/sf-LAB/providers/Microsoft.Compute/virtualMachines/DC1";
+        ports=(@{
+        number=3389;
+        endTimeUtc="2023-01-04T13:00:00.3658798Z";
+        allowedSourceAddressPrefix=@("$publicIP")})})
+
+
+    $JitPolicyArr=@($JitPolicyVm1)
+
+    Start-AzJitNetworkAccessPolicy -ResourceId "/subscriptions/<<<<SUBSCRIPTIONID>>>>>>>/resourceGroups/sf-LAB/providers/Microsoft.Security/locations/northeurope/jitNetworkAccessPolicies/default" -VirtualMachine $JitPolicyArr
 }
 else{
     foreach($VM_name in $VM_names){
@@ -59,26 +81,7 @@ else{
             Write-Output "Virtual machine '$VM_name' stopped."
         }
     }
+
+    Write-Output "Done killing VMs - quitting."
 }
 
-$publicIP_raw = (Invoke-WebRequest -UseBasicParsing -Uri "https://www.showmyip.com/" -Method Get).Content
-$publicIP_raw -match '(?<=<h2 id="ipv4">)(.*)(?=<\/h2>)'
-$publicIP = $Matches[0]
-
-$rdpPORT = 3389
-
-Write-Output "Your public IP address is: $publicIP"
-
-# can't get it to work for some reason with the variables $ so I suspect something is up when not doing it hardcoded or I'm not doing it right rn,works atm with hardcoded string. 
-
-$JitPolicyVm1 = (@{
-    id="/subscriptions/<<<<SUBSCRIPTIONID>>>>>>>/resourceGroups/sf-LAB/providers/Microsoft.Compute/virtualMachines/DC1";
-    ports=(@{
-       number=3389;
-       endTimeUtc="2023-01-04T13:00:00.3658798Z";
-       allowedSourceAddressPrefix=@("$publicIP")})})
-
-
-$JitPolicyArr=@($JitPolicyVm1)
-
-Start-AzJitNetworkAccessPolicy -ResourceId "/subscriptions/<<<<SUBSCRIPTIONID>>>>>>>/resourceGroups/sf-LAB/providers/Microsoft.Security/locations/northeurope/jitNetworkAccessPolicies/default" -VirtualMachine $JitPolicyArr
